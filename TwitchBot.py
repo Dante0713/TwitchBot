@@ -168,7 +168,7 @@ class TwitchBot:
                         self.send_message(self.SOCKET, "親愛的 " + nick_name + " ~ 所有指令在 https://goo.gl/etv8rT 中可以查詢"
                                                                        "唷~")
                         break
-                    elif "大家晚安" in message:
+                    elif "大家晚安" in message or "quit" in message:
                         self.send_message(self.SOCKET, "謝謝今天的各位的參與，喜歡我的朋友可以加入我的臉書粉專 https://www."
                                                        "facebook.com/dante0713 ,台裡的最新資訊都在臉書粉專裡，祝各位有個美"
                                                        "麗的夜晚，大家晚安囉~ 88")
@@ -181,7 +181,7 @@ class TwitchBot:
                         break
                 if "月月" in message or "丹丹" in message or "提哥" in message or "堤哥" in message or "月子" in message or "月提" in message \
                         or "月堤" in message or "丹提" in message or "丹堤" in message or "台主" in message:
-                    if "安安" in message or "ㄤㄤ" in message or "你好" in message or "KonCha" in message or "Hi" in message:
+                    if "安安" in message or "ㄤㄤ" in message or "你好" in message or "KonCha" in message or "Hi" in message or "hi" in message:
                         self.send_message(self.SOCKET, "你好啊~" + nick_name + " ! 歡迎來到丹堤實況台~ 希望你會喜歡今天的實況內容~ ")
                         break
                     if "早" in message:
@@ -193,7 +193,7 @@ class TwitchBot:
                 if "歐吼" in message:
                     if user == "n75830" or user == "ss87414" or user == "winnie0810":
                         self.send_message(self.SOCKET, "歐~~~ 齁~~~~~" + nick_name + "早安呀")
-                if "!認人 " in message:
+                if "!認人 " in message or "!set_nick_name " in message:
                     case = self.set_nick_name_from_lines(message=message, user=user)
                     if case == 1:
                         self.send_message(self.SOCKET, "輸入成功 (測試中)")
@@ -210,6 +210,8 @@ class TwitchBot:
                             split_nick_name = "LENA"
                         elif user == "tiaolowan":
                             split_nick_name = "樓王"
+                        else:
+                            split_nick_name = nick_name
                         self.send_message(self.SOCKET, " FailFish ".join(split_nick_name))
 
 ############################################################################

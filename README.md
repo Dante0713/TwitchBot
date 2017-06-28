@@ -5,8 +5,9 @@ Simple commands like
 
 Owner:
 
-    -!commands: Showing bot's commands.
-    -quit: Quit channel.
+| :------------ |:---------------| 
+| !commands      | Showing bot's commands |
+| quit      | Quit channel.       | 
 
 Audience:
 

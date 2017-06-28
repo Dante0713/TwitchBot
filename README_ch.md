@@ -6,11 +6,11 @@
 ## 實況主:
 
     !commands: 使用google文件展示所有指令
-    quit:Quit channel.
+    大家晚安: 機器人離開頻道，並秀出對應的問候語
+    
+## 觀眾:
     
-## Audience:
-    
-    say hello to owner: Saying hello to owner with any key words set by owner.
-    !set_nick_name [Audience Nick Name]: Keep the nick name of audience which is setting by audience.
-     
-P.S. Nickname should be short and contain no more than 10 words
+    對實況主打招呼: [月月|丹丹|提哥|月子|月提|月堤|丹提|丹堤|台主] [安安|ㄤㄤ|你好|KonCha|Hi|hi]
+    !認人 [觀眾自己設定的暱稱]: 存入觀眾設定的暱稱，當字句提及觀眾時使用觀眾的暱稱稱呼觀眾。
+     
+P.S. 暱稱不得多於10個字元

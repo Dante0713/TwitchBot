@@ -175,10 +175,6 @@ class TwitchBot:
                         self.store_nick_list()
                         self.QUIT = False
                         break
-                if "老楊" in message:
-                    if "安安" in message or "ㄤㄤ" in message:
-                        self.send_message(self.SOCKET, "滾! ")
-                        break
                 if "月月" in message or "丹丹" in message or "提哥" in message or "堤哥" in message or "月子" in message or "月提" in message \
                         or "月堤" in message or "丹提" in message or "丹堤" in message or "台主" in message:
                     if "安安" in message or "ㄤㄤ" in message or "你好" in message or "KonCha" in message or "Hi" in message or "hi" in message:

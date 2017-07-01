@@ -1,5 +1,5 @@
 # The only import you need!
-import socket,re
+import socket, re, random
 
 
 class TwitchBot:
@@ -8,14 +8,14 @@ class TwitchBot:
         self.SERVER = "irc.twitch.tv"  # server
         self.PORT = 6667  # port
         # Options (Edit this)
-        self.PASS = "oauth:Your oauth password"  # bot password can be found on https://twitchapps.com/tmi/
+        self.PASS = "oauth: Your oauth passwords"  # bot password can be found on https://twitchapps.com/tmi/
         self.BOT = "dante0713"  # Bot's name [NO CAPITALS]
         self.CHANNEL = "dante0713"  # Channal name [NO CAPITALS]
         self.OWNER = "dante0713"  # Owner's name [NO CAPITALS]
         self.QUIT = True
         self.SOCKET = socket.socket()
         self.readbuffer = ""
-        self.NickNameFile = 'C:/Users/USER/Desktop/TwitchBot/NickNameList.txt'
+        self.NickNameFile = 'F:/TwitchBot-master/NickNameList.txt'
         self.NickList = []
 
     # Functions
@@ -28,7 +28,7 @@ class TwitchBot:
             for line in read_nick_file.readlines():
                 if line == "":
                     break
-                line.replace("\n","")
+                line.replace("\n", "")
                 line = line[:len(line)].split(", ")
                 nick_list.append(line)
         finally:
@@ -74,12 +74,12 @@ class TwitchBot:
         else:
             return True
 
-    def set_nick_name_from_lines(self,  user, message):
+    def set_nick_name_from_lines(self, user, message):
         Sentence = message.split(' ')
         if len(Sentence) == 2:
             Sentence = Sentence[1]
             if len(Sentence) <= 10:
-                self.set_nick_name(user= user, NickName= re.sub('\r|\n|\t','',Sentence))
+                self.set_nick_name(user=user, NickName=re.sub('\r|\n|\t', '', Sentence))
                 print(self.NickList)
                 return 1
             else:
@@ -96,7 +96,7 @@ class TwitchBot:
         if flag:
             self.NickList.append([user, NickName])
 
-    def get_nick_name(self,  user):
+    def get_nick_name(self, user):
         for line in self.NickList:
             if user == line[0]:
                 return line[1]
@@ -115,7 +115,7 @@ class TwitchBot:
         try:
             for i in range(len(self.NickList)):
                 print(type(self.NickList[i][0]))
-                words = words + self.NickList[i][0] + ", " + re.sub('\n','',self.NickList[i][1]) + "\n"
+                words = words + self.NickList[i][0] + ", " + re.sub('\n', '', self.NickList[i][1]) + "\n"
             # do stuff with WriteNickFile
             WriteNickFile.write(words)
         finally:
@@ -133,10 +133,35 @@ class TwitchBot:
         self.join_chat()
         self.readbuffer = ""
 
+    def set_lake_stuff_from_lines(self, message, user):
+        Sentence = message.split(' ')
+        if len(Sentence) == 2:
+            Sentence = Sentence[1]
+            if len(Sentence) <= 10:
+                return Sentence
+            else:
+                return 1
+        else:
+            return 2
+        pass
+
+    def get_stuff(self):
+        number = random.randint(0,999)
+        if number <= 15:
+            return 0
+        elif number <= 35:
+            return 1
+        elif number <= 470:
+            return 2
+        else:
+            return 3
+
     def run(self):
         line = ""
         thisNickName = ""
         thisUser = ""
+        lady_was_die_in_user_hands = ""
+        lady_of_lake_flag = True
         while self.QUIT:
             try:
                 self.readbuffer = self.SOCKET.recv(1024)
@@ -157,6 +182,7 @@ class TwitchBot:
                 user = self.get_user(line)
                 # get user's nick name
                 nick_name = self.get_nick_name(user)
+                print(type(nick_name))
                 # get message send by user
                 message = self.get_message(line)
                 # for you to see the chat from CMD
@@ -164,41 +190,82 @@ class TwitchBot:
 
                 # commands
                 if user == self.OWNER:
-                    if "!command" in message:
-                        self.send_message(self.SOCKET, "親愛的 " + nick_name + " ~ 所有指令在 https://goo.gl/etv8rT 中可以查詢"
-                                                                       "唷~")
+                    if "!丹堤bot指令集" in message:
+                        self.send_message(self.SOCKET, "親愛的 " + nick_name + " ~ 所有指令在 https://goo.gl/etv8rT 中可以查詢")
                         break
                     elif "大家晚安" in message or "quit" in message:
-                        self.send_message(self.SOCKET, "謝謝今天的各位的參與，喜歡我的朋友可以加入我的臉書粉專 https://www."
-                                                       "facebook.com/dante0713 ,台裡的最新資訊都在臉書粉專裡，祝各位有個美"
-                                                       "麗的夜晚，大家晚安囉~ 88")
+                        #self.send_message(self.SOCKET, "謝謝今天的各位的參與，喜歡我的朋友可以加入我的臉書粉專 https://www."
+                        #                               "facebook.com/dante0713 ,台裡的最新資訊都在臉書粉專裡，祝各位有個美"
+                        #                               "麗的夜晚，大家晚安囉~ 88")
+                        self.send_message(self.SOCKET, "丹堤bot 下線中...")
+                        self.send_message(self.SOCKET, "丹堤bot 已離線")
                         self.store_nick_list()
                         self.QUIT = False
                         break
-                if "月月" in message or "丹丹" in message or "提哥" in message or "堤哥" in message or "月子" in message or "月提" in message \
-                        or "月堤" in message or "丹提" in message or "丹堤" in message or "台主" in message:
-                    if "安安" in message or "ㄤㄤ" in message or "你好" in message or "KonCha" in message or "Hi" in message or "hi" in message:
-                        self.send_message(self.SOCKET, "你好啊~" + nick_name + " ! 歡迎來到丹堤實況台~ 希望你會喜歡今天的實況內容~ ")
+                    elif "!myGit" in message:
+                        self.send_message(self.SOCKET, "這是我寫的聊天室機器人，歡迎觀看及使用 https://github.com/Dante0713/TwitchBot")
                         break
-                    if "早" in message:
-                        self.send_message(self.SOCKET, "早啊~" + nick_name + " ! 早起精神好! ")
+                    elif "滋滋卡滋滋，湖中女神~ 神力復甦!!" in message:
+                        lady_of_lake_flag = True
+                        lady_was_die_in_user_hands = ""
+                        self.send_message(self.SOCKET, "在台主施以神奇的魔法後，湖中女神意外的復活了!!!")
                         break
-                    if '好久不見' in message:
-                        self.send_message(self.SOCKET, "真的是好久不見了~ " + nick_name + ", 我給您留了個位置, 趕快拉張椅子坐下來看台吧 <3")
+                if "!湖中女神 " in message or "!drop " in message:
+                    if lady_of_lake_flag == True:
+                        stuff = self.set_lake_stuff_from_lines(message, user)
+                        if stuff == 1:
+                            self.send_message(self.SOCKET, "很抱歉，由於您的物品名稱太長，導致掉下去湖中的過程，刺死了湖中女神，請您訂閱台主、斗內台主或使用小奇點以喚回湖中女神") # 中文版 防呆
+                            lady_was_die_in_user_hands = user
+                            lady_of_lake_flag = False
+                            break
+                        elif stuff == 2:
+                            self.send_message(self.SOCKET, "很抱歉，由於您丟入湖裡的物品長得太奇怪，湖中女神認不出來，請您再丟一次，不知道怎麼丟可以問台主 :) ")
+                            break
+                        else:
+                            value = self.get_stuff()
+                            if value == 0:
+                                self.send_message(self.SOCKET, "恭喜你, 成功用愛情擄獲了湖中女神的心, 湖中女神決定不只給你 金" + stuff + " 作為回報，也獻上了他的肉體 <3 (恭喜您獲得 500 丹丹幣，請聊天室的朋友提醒台主給錢)")
+                                break
+                            elif value == 1:
+                                self.send_message(self.SOCKET, "恭喜你, 成功用十塊錢擄獲了湖中女神的心, 湖中女神決定用 銀" + stuff + " 回報你的斗內 <3 (恭喜您獲得 300 丹丹幣，請聊天室的朋友提醒台主給錢)")
+                                break
+                            elif value == 2:
+                                self.send_message(self.SOCKET, "很抱歉,湖中女神聽不到你說甚麼,於是你的" +stuff + "就這樣默默的沉入湖底...")
+                                break
+                            elif value == 3:
+                                self.send_message(self.SOCKET, "湖中女神覺得你很誠實,所以決定把"+ stuff +"物歸原主")
+                                break
+                    else:
+                        self.send_message(self.SOCKET,
+                                          "湖中女神已經被" + lady_was_die_in_user_hands + "殺死，只有訂閱、斗內或小奇點，才有辦法讓台主使湖中女神死亡復甦! ")  # 中文版 防呆
+                        break
+                if "!認人 " in message or "!set_nick_name " in message:
+                    case = self.set_nick_name_from_lines(message=message, user=user)
+                    if case == 1:
+                        self.send_message(self.SOCKET, "恭喜你輸入成功")
+                        break
+                    elif case == 2:
+                        self.send_message(self.SOCKET, '親愛的' + nick_name + '，您設定的暱稱酷炫屌炸天，而且超過十個字，導致我的腦容量爆表拉!!!  NotLikeThis')
+                        break
+                    elif case == 3:
+                        self.send_message(self.SOCKET, '小淘氣，不要鬧在下了~ 您的暱稱不可包含空格 提示: (!認人 <您的暱稱>)')
+                        break
+
+                if 'Hi' in message or 'hi' in message:
+                    if 'FlipThis' in message or 'TheThing' in message or 'VoHiYo' in message or 'DoritosChip' in message or 'copyThis' in message or 'MorphinTime' in message or 'BigPhish' in message:
+                        break
+                    elif 'Dante' in message or 'dante' in message:
+                        self.send_message(self.SOCKET, "Hi there, " + nick_name + "!")
+                        break
+                    else:
+                        self.send_message(self.SOCKET, "Hi there, " + nick_name + "!")
                         break
                 if "歐吼" in message:
                     if user == "n75830" or user == "ss87414" or user == "winnie0810":
                         self.send_message(self.SOCKET, "歐~~~ 齁~~~~~" + nick_name + "早安呀")
-                if "!認人 " in message or "!set_nick_name " in message:
-                    case = self.set_nick_name_from_lines(message=message, user=user)
-                    if case == 1:
-                        self.send_message(self.SOCKET, "輸入成功 (測試中)")
-                    elif case == 2:
-                        self.send_message(self.SOCKET, '親愛的' + nick_name + '，您設定的暱稱酷炫屌炸天，而且超過十個字，導致我的腦容量爆表拉!!!  NotLikeThis')
-                    elif case == 3:
-                        self.send_message(self.SOCKET, '小淘氣，不要鬧在下了~ 您的暱稱不可包含空格 提示: (!認人 <您的暱稱>)')
+                        break
                 if "InuyoFace" in message:
-                    self.send_message(self.SOCKET, "你想幹嘛?")
+                    self.send_message(self.SOCKET, "你想幹嘛? ScaredyCat ")
                 if "KappaPride" in message:
                     if "阿" in message and "月" in message and "仔" in message:
                         split_nick_name = ""
@@ -209,7 +276,9 @@ class TwitchBot:
                         else:
                             split_nick_name = nick_name
                         self.send_message(self.SOCKET, " FailFish ".join(split_nick_name))
-
+                        break
+                else:
+                    break
 ############################################################################
 if __name__ == '__main__':
     Dante0713 = TwitchBot()

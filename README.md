@@ -8,6 +8,7 @@ Simple commands like
     !commands:Showing bot's commands
     quit:Quit channel.
     My daughter will reborn by your strong begging: Reborning the lady of the lake!
+    !myGit: Showing the Github README links.
     
 ## Audience:
 

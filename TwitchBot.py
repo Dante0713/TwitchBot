@@ -8,7 +8,7 @@ class TwitchBot:
         self.SERVER = "irc.twitch.tv"  # server
         self.PORT = 6667  # port
         # Options (Edit this)
-        self.PASS = "oauth: Your oauth passwords"  # bot password can be found on https://twitchapps.com/tmi/
+        self.PASS = "oauth:pcd4qyfqd5t6we1sykcwzm657rc1vy"  # bot password can be found on https://twitchapps.com/tmi/
         self.BOT = "dante0713"  # Bot's name [NO CAPITALS]
         self.CHANNEL = "dante0713"  # Channal name [NO CAPITALS]
         self.OWNER = "dante0713"  # Owner's name [NO CAPITALS]
@@ -28,7 +28,7 @@ class TwitchBot:
             for line in read_nick_file.readlines():
                 if line == "":
                     break
-                line.replace("\n", "")
+                line = line.strip('\n')
                 line = line[:len(line)].split(", ")
                 nick_list.append(line)
         finally:
@@ -114,7 +114,6 @@ class TwitchBot:
         words = ""
         try:
             for i in range(len(self.NickList)):
-                print(type(self.NickList[i][0]))
                 words = words + self.NickList[i][0] + ", " + re.sub('\n', '', self.NickList[i][1]) + "\n"
             # do stuff with WriteNickFile
             WriteNickFile.write(words)
@@ -182,7 +181,6 @@ class TwitchBot:
                 user = self.get_user(line)
                 # get user's nick name
                 nick_name = self.get_nick_name(user)
-                print(type(nick_name))
                 # get message send by user
                 message = self.get_message(line)
                 # for you to see the chat from CMD
@@ -203,7 +201,10 @@ class TwitchBot:
                         self.QUIT = False
                         break
                     elif "!myGit" in message:
-                        self.send_message(self.SOCKET, "這是我寫的聊天室機器人，歡迎觀看及使用 https://github.com/Dante0713/TwitchBot")
+                        self.send_message(self.SOCKET, "Here's my Twitch Bot link. https://github.com/Dante0713/TwitchBot/blob/master/README.md")
+                        break
+                    elif "!我的Github" in message:
+                        self.send_message(self.SOCKET, "這是我寫的聊天室機器人，歡迎觀看及使用 https://github.com/Dante0713/TwitchBot/blob/master/README_CH.md")
                         break
                     elif "滋滋卡滋滋，湖中女神~ 神力復甦!!" in message:
                         lady_of_lake_flag = True
@@ -250,22 +251,39 @@ class TwitchBot:
                     elif case == 3:
                         self.send_message(self.SOCKET, '小淘氣，不要鬧在下了~ 您的暱稱不可包含空格 提示: (!認人 <您的暱稱>)')
                         break
-
+                if "月月" in message or "丹丹" in message or "提哥" in message or "堤哥" in message or "月子" in message or "月提" in message or "月堤" in message or "丹提" in message or "丹堤" in message or "台主" in message:
+                    if "安安" in message or "ㄤㄤ" in message or "你好" in message or "KonCha" in message or "Hi" in message or "hi" in message:
+                        self.send_message(self.SOCKET, "你好啊~" + nick_name + " ! 歡迎來到丹堤實況台~ 希望你會喜歡今天的實況內容~ ")
+                        break
+                    if "早" in message:
+                        self.send_message(self.SOCKET, "早啊~" + nick_name + " ! 早起精神好! ")
+                        break
+                    if '好久不見' in message:
+                        self.send_message(self.SOCKET, "真的是好久不見了~ " + nick_name + ", 我給您留了個位置, 趕快拉張椅子坐下來看台吧 <3")
+                        break
+                    if '姊姊' in message or '姐姐' in message or '解解' in message:
+                        self.send_message(self.SOCKET, nick_name + "妹妹早阿~ 小朋友們今天有沒有都乖乖的呀? ")
+                        break
                 if 'Hi' in message or 'hi' in message:
                     if 'FlipThis' in message or 'TheThing' in message or 'VoHiYo' in message or 'DoritosChip' in message or 'copyThis' in message or 'MorphinTime' in message or 'BigPhish' in message:
                         break
                     elif 'Dante' in message or 'dante' in message:
-                        self.send_message(self.SOCKET, "Hi there, " + nick_name + "!")
+                        self.send_message(self.SOCKET, "Hello, " + nick_name + "!")
                         break
                     else:
-                        self.send_message(self.SOCKET, "Hi there, " + nick_name + "!")
+                        self.send_message(self.SOCKET, "Hi there! Nice to meet you")
                         break
                 if "歐吼" in message:
                     if user == "n75830" or user == "ss87414" or user == "winnie0810":
                         self.send_message(self.SOCKET, "歐~~~ 齁~~~~~" + nick_name + "早安呀")
                         break
+                if "丹寶貝" in message or '丹寶寶' in message:
+                    if user == 'morgn__':
+                        self.send_message(self.SOCKET, "摩根寶貝你來啦~  TwitchUnity  TwitchUnity")
+                        break
                 if "InuyoFace" in message:
                     self.send_message(self.SOCKET, "你想幹嘛? ScaredyCat ")
+                    break
                 if "KappaPride" in message:
                     if "阿" in message and "月" in message and "仔" in message:
                         split_nick_name = ""

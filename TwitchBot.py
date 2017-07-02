@@ -8,7 +8,7 @@ class TwitchBot:
         self.SERVER = "irc.twitch.tv"  # server
         self.PORT = 6667  # port
         # Options (Edit this)
-        self.PASS = "oauth:pcd4qyfqd5t6we1sykcwzm657rc1vy"  # bot password can be found on https://twitchapps.com/tmi/
+        self.PASS = "oauth:Your oauth passward "  # bot password can be found on https://twitchapps.com/tmi/
         self.BOT = "dante0713"  # Bot's name [NO CAPITALS]
         self.CHANNEL = "dante0713"  # Channal name [NO CAPITALS]
         self.OWNER = "dante0713"  # Owner's name [NO CAPITALS]

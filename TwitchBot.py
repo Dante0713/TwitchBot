@@ -1,5 +1,5 @@
 # The only import you need!
-import socket, re, random
+import socket, requests, re, random
 
 
 class TwitchBot:
@@ -8,7 +8,7 @@ class TwitchBot:
         self.SERVER = "irc.twitch.tv"  # server
         self.PORT = 6667  # port
         # Options (Edit this)
-        self.PASS = "oauth:Your oauth passward "  # bot password can be found on https://twitchapps.com/tmi/
+        self.PASS = "oauth: Your oauth passwaord"  # bot password can be found on https://twitchapps.com/tmi/
         self.BOT = "dante0713"  # Bot's name [NO CAPITALS]
         self.CHANNEL = "dante0713"  # Channal name [NO CAPITALS]
         self.OWNER = "dante0713"  # Owner's name [NO CAPITALS]
@@ -154,6 +154,17 @@ class TwitchBot:
             return 2
         else:
             return 3
+    # 爬聊天室觀眾 準備計算 point 未完成
+    def keep_viewer(self):
+        res = requests.get('http://tmi.twitch.tv/group/user/dante0713/chatters')
+        words = re.sub('\r|\n|\t|', '', res.text)
+        viewers = words.split('"viewers": [')[1].split(']')[0]
+        mods = words.split('"moderators": [')[1].split(']')[0]
+        viewers = re.sub(",      " + r'"' + "streamelements" + r'"' + "", "",
+                         viewers + ",      " + mods)  # 去除 streamelements, kimikobot
+        viewers = re.sub(",      " + r'"' + "kimikobot" + r'"' + "", "", viewers)
+        viewer_list = re.sub(r'"', "", re.sub(" ", "", viewers)).split(',')
+        return viewer_list
 
     def run(self):
         line = ""
@@ -203,7 +214,7 @@ class TwitchBot:
                     elif "!myGit" in message:
                         self.send_message(self.SOCKET, "Here's my Twitch Bot link. https://github.com/Dante0713/TwitchBot/blob/master/README.md")
                         break
-                    elif "!我的Github" in message:
+                    elif "!我的Git" in message:
                         self.send_message(self.SOCKET, "這是我寫的聊天室機器人，歡迎觀看及使用 https://github.com/Dante0713/TwitchBot/blob/master/README_CH.md")
                         break
                     elif "滋滋卡滋滋，湖中女神~ 神力復甦!!" in message:
@@ -262,8 +273,9 @@ class TwitchBot:
                         self.send_message(self.SOCKET, "真的是好久不見了~ " + nick_name + ", 我給您留了個位置, 趕快拉張椅子坐下來看台吧 <3")
                         break
                     if '姊姊' in message or '姐姐' in message or '解解' in message:
-                        self.send_message(self.SOCKET, nick_name + "妹妹早阿~ 小朋友們今天有沒有都乖乖的呀? ")
-                        break
+                        if len(message) < 6:
+                            self.send_message(self.SOCKET, nick_name + "妹妹早阿~ 小朋友們今天有沒有都乖乖的呀? ")
+                            break
                 if 'Hi' in message or 'hi' in message:
                     if 'FlipThis' in message or 'TheThing' in message or 'VoHiYo' in message or 'DoritosChip' in message or 'copyThis' in message or 'MorphinTime' in message or 'BigPhish' in message:
                         break

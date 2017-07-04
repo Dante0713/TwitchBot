@@ -1,5 +1,5 @@
 # The only import you need!
-import socket, requests, re, random
+import socket, requests, re, random, time
 
 
 class TwitchBot:
@@ -8,15 +8,16 @@ class TwitchBot:
         self.SERVER = "irc.twitch.tv"  # server
         self.PORT = 6667  # port
         # Options (Edit this)
-        self.PASS = "oauth: Your oauth passwaord"  # bot password can be found on https://twitchapps.com/tmi/
+        self.PASS = "oauth:Your oauth passwords"  # bot password can be found on https://twitchapps.com/tmi/
         self.BOT = "dante0713"  # Bot's name [NO CAPITALS]
         self.CHANNEL = "dante0713"  # Channal name [NO CAPITALS]
         self.OWNER = "dante0713"  # Owner's name [NO CAPITALS]
         self.QUIT = True
         self.SOCKET = socket.socket()
-        self.readbuffer = ""
+        self.read_buffer = ""
         self.NickNameFile = 'F:/TwitchBot-master/NickNameList.txt'
         self.NickList = []
+        self.AudienceList = {}
 
     # Functions
     def read_nick_name_file(self):
@@ -57,6 +58,7 @@ class TwitchBot:
         readbuffer_join = "".encode('utf8')
         Loading = True
         self.NickList = self.read_nick_name_file()
+        self.AudienceList = self.keep_viewer()
         while Loading:
             readbuffer_join = self.SOCKET.recv(1024)
             readbuffer_join = readbuffer_join.decode('utf8')
@@ -130,7 +132,7 @@ class TwitchBot:
         s_prep.send(("JOIN #" + self.CHANNEL + "\r\n").encode('utf8'))
         self.SOCKET = s_prep
         self.join_chat()
-        self.readbuffer = ""
+        self.read_buffer = ""
 
     def set_lake_stuff_from_lines(self, message, user):
         Sentence = message.split(' ')
@@ -156,6 +158,7 @@ class TwitchBot:
             return 3
     # 爬聊天室觀眾 準備計算 point 未完成
     def keep_viewer(self):
+        audience_list = {}
         res = requests.get('http://tmi.twitch.tv/group/user/dante0713/chatters')
         words = re.sub('\r|\n|\t|', '', res.text)
         viewers = words.split('"viewers": [')[1].split(']')[0]
@@ -164,21 +167,54 @@ class TwitchBot:
                          viewers + ",      " + mods)  # 去除 streamelements, kimikobot
         viewers = re.sub(",      " + r'"' + "kimikobot" + r'"' + "", "", viewers)
         viewer_list = re.sub(r'"', "", re.sub(" ", "", viewers)).split(',')
-        return viewer_list
+        for viewer in viewer_list:
+            audience_list[viewer] = 0
+        return audience_list
+
+    def compare_set(self):
+        flag = False
+        audience_list = self.keep_viewer()
+        for key in audience_list:
+            if key in self.AudienceList:
+                self.AudienceList[key] = self.AudienceList[key] + 1
+            else:
+                self.AudienceList[key] = 0
+
+    def count_loyalty(self, time_keep_flag, first_time):
+        # 問題: 不知道不講話的觀眾會不會被算進去
+        if time_keep_flag == False:
+            next_time = time.time()
+            time_count = next_time - first_time
+            if time_count >= 60:
+                self.compare_set()
+            else:
+                return False
+
+    def show_audience_list(self):
+        words = ""
+        print(self.AudienceList)
+        for key in self.AudienceList:
+            words = words + key + ": " + str(self.AudienceList[key])+ ", "
+        return words
 
     def run(self):
         line = ""
         thisNickName = ""
         thisUser = ""
+        first_time = 0
+        time_keep_flag = True
         lady_was_die_in_user_hands = ""
         lady_of_lake_flag = True
         while self.QUIT:
             try:
-                self.readbuffer = self.SOCKET.recv(1024)
-                self.readbuffer = self.readbuffer.decode('utf8')
-                temp = self.readbuffer.split("\n")
-                self.readbuffer = self.readbuffer.encode('utf8')
-                self.readbuffer = temp.pop()
+                if time_keep_flag == True:
+                    first_time = time.time()
+                time_keep_flag = self.count_loyalty(time_keep_flag, first_time)
+                self.read_buffer = self.SOCKET.recv(1024)
+                self.read_buffer = self.read_buffer.decode('utf8')
+                temp = self.read_buffer.split("\n")
+                self.read_buffer = self.read_buffer.encode('utf8')
+                self.read_buffer = temp.pop()
             except:
                 temp = ""
             for line in temp:
@@ -208,6 +244,7 @@ class TwitchBot:
                         #                               "麗的夜晚，大家晚安囉~ 88")
                         self.send_message(self.SOCKET, "丹堤bot 下線中...")
                         self.send_message(self.SOCKET, "丹堤bot 已離線")
+                        self.send_message(self.SOCKET, "Points: " + self.show_audience_list())
                         self.store_nick_list()
                         self.QUIT = False
                         break
@@ -277,7 +314,7 @@ class TwitchBot:
                             self.send_message(self.SOCKET, nick_name + "妹妹早阿~ 小朋友們今天有沒有都乖乖的呀? ")
                             break
                 if 'Hi' in message or 'hi' in message:
-                    if 'FlipThis' in message or 'TheThing' in message or 'VoHiYo' in message or 'DoritosChip' in message or 'copyThis' in message or 'MorphinTime' in message or 'BigPhish' in message:
+                    if 'FlipThis' in message or 'TheThing' in message or 'VoHiYo' in message or 'DoritosChip' in message or 'copyThis' in message or 'MorphinTime' in message or 'BigPhish' in message or 'NotLikeThis' in message:
                         break
                     elif 'Dante' in message or 'dante' in message:
                         self.send_message(self.SOCKET, "Hello, " + nick_name + "!")

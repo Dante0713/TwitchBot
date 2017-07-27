@@ -8,7 +8,7 @@ class TwitchBot:
         self.SERVER = "irc.twitch.tv"  # server
         self.PORT = 6667  # port
         # Options (Edit this)
-        self.PASS = "oauth:Your oauth passwords"  # bot password can be found on https://twitchapps.com/tmi/
+        self.PASS = "oauth:Your Oauth"  # bot password can be found on https://twitchapps.com/tmi/
         self.BOT = "dante0713"  # Bot's name [NO CAPITALS]
         self.CHANNEL = "dante0713"  # Channal name [NO CAPITALS]
         self.OWNER = "dante0713"  # Owner's name [NO CAPITALS]
@@ -18,6 +18,7 @@ class TwitchBot:
         self.NickNameFile = 'F:/TwitchBot-master/NickNameList.txt'
         self.NickList = []
         self.AudienceList = {}
+        self.BombRange = [0, 100]
 
     # Functions
     def read_nick_name_file(self):
@@ -38,7 +39,7 @@ class TwitchBot:
             return nick_list
 
     def send_message(self, s, line):
-        message_temp = "PRIVMSG #" + self.CHANNEL + " :" + line
+        message_temp = "PRIVMSG #" + self.CHANNEL + " :\x01ACTION " + line + " !\x01\r\n"
         s.send((message_temp + "\r\n").encode('utf8'))
 
     def get_user(self, line):
@@ -111,6 +112,7 @@ class TwitchBot:
         else:
             return True
 
+    # 認人
     def store_nick_list(self):
         WriteNickFile = open(self.NickNameFile, 'w')
         words = ""
@@ -123,7 +125,7 @@ class TwitchBot:
             if WriteNickFile is not None:
                 WriteNickFile.close()
 
-# Code runs
+    # Code runs
     def setting(self):
         s_prep = socket.socket()
         s_prep.connect((self.SERVER, self.PORT))
@@ -134,6 +136,7 @@ class TwitchBot:
         self.join_chat()
         self.read_buffer = ""
 
+    # 湖中女神 輸入控制
     def set_lake_stuff_from_lines(self, message, user):
         Sentence = message.split(' ')
         if len(Sentence) == 2:
@@ -146,8 +149,9 @@ class TwitchBot:
             return 2
         pass
 
+    # 湖中女神機率控制
     def get_stuff(self):
-        number = random.randint(0,999)
+        number = random.randint(0, 99999)
         if number <= 15:
             return 0
         elif number <= 35:
@@ -156,6 +160,44 @@ class TwitchBot:
             return 2
         else:
             return 3
+
+    def set_CDTime(self, message):
+        Sentence = message.split(' ')
+        if len(Sentence) == 2:
+            Sentence = Sentence[1]
+            return int(Sentence)
+        else:
+            self.send_message(self.SOCKET, "Input error: The command should be EX. !女神CD [second]")
+
+    # 終極密碼
+    def number_check(self, user, input_number, target, range):
+        if input_number < range[1] and input_number > range[0]:
+            if input_number > target:
+                range[1] = input_number
+                self.send_message(self.SOCKET,'range goes [' + str(range[0]) + '] to [' + str(range[1]) + ']')
+                return range
+            elif input_number < target:
+                range[0] = input_number
+                self.send_message(self.SOCKET,'range goes [' + str(range[0]) + '] to [' + str(range[1]) + ']')
+                return range
+            elif input_number == target:
+                self.send_message(self.SOCKET,'Find bomb. Congratulation! '+ user +' just got timeout for 60 seconds. P.S. 您將獲得60秒禁言以及50丹丹幣 dante0Happy ')
+                self.timeout(user)
+                self.BombRange = [0,100]
+                return False
+            else:
+                pass
+        else:
+            self.send_message(self.SOCKET,'Input error: Dear '+ user +', please type the number between THE RANGE')
+            return range
+
+    def timeout(self, user):
+        self.SOCKET.send(("PRIVMSG #" + self.CHANNEL + " :" + ".timeout " + user + " 60" + "\r\n").encode('utf8'))
+        self.SOCKET.send(("PRIVMSG #" + self.CHANNEL + " :" + "!addpoints " + user + " 50" + "\r\n").encode('utf8'))
+
+    def get_Bomb_number(self, message):
+        return re.sub('\r|\n|\t', '', message)
+
     # 爬聊天室觀眾 準備計算 point 未完成
     def keep_viewer(self):
         audience_list = {}
@@ -165,6 +207,7 @@ class TwitchBot:
         mods = words.split('"moderators": [')[1].split(']')[0]
         viewers = re.sub(",      " + r'"' + "streamelements" + r'"' + "", "",
                          viewers + ",      " + mods)  # 去除 streamelements, kimikobot
+        viewers = re.sub(",      " + r'"' + "Nightbot" + r'"' + "", "", viewers)
         viewers = re.sub(",      " + r'"' + "kimikobot" + r'"' + "", "", viewers)
         viewer_list = re.sub(r'"', "", re.sub(" ", "", viewers)).split(',')
         for viewer in viewer_list:
@@ -176,7 +219,7 @@ class TwitchBot:
         audience_list = self.keep_viewer()
         for key in audience_list:
             if key in self.AudienceList:
-                self.AudienceList[key] = self.AudienceList[key] + 1
+                self.AudienceList[key] += 1
             else:
                 self.AudienceList[key] = 0
 
@@ -198,13 +241,15 @@ class TwitchBot:
         return words
 
     def run(self):
-        line = ""
-        thisNickName = ""
-        thisUser = ""
+        lady_of_lake_CD = time.time()
+        CD_Time = 30
+        BombSolution = 0
         first_time = 0
         time_keep_flag = True
         lady_was_die_in_user_hands = ""
         lady_of_lake_flag = True
+        hello_flag = True
+        BombFlag = False
         while self.QUIT:
             try:
                 if time_keep_flag == True:
@@ -259,35 +304,55 @@ class TwitchBot:
                         lady_was_die_in_user_hands = ""
                         self.send_message(self.SOCKET, "在台主施以神奇的魔法後，湖中女神意外的復活了!!!")
                         break
-                if "!湖中女神 " in message or "!drop " in message:
-                    if lady_of_lake_flag == True:
-                        stuff = self.set_lake_stuff_from_lines(message, user)
-                        if stuff == 1:
-                            self.send_message(self.SOCKET, "很抱歉，由於您的物品名稱太長，導致掉下去湖中的過程，刺死了湖中女神，請您訂閱台主、斗內台主或使用小奇點以喚回湖中女神") # 中文版 防呆
-                            lady_was_die_in_user_hands = user
-                            lady_of_lake_flag = False
-                            break
-                        elif stuff == 2:
-                            self.send_message(self.SOCKET, "很抱歉，由於您丟入湖裡的物品長得太奇怪，湖中女神認不出來，請您再丟一次，不知道怎麼丟可以問台主 :) ")
-                            break
-                        else:
-                            value = self.get_stuff()
-                            if value == 0:
-                                self.send_message(self.SOCKET, "恭喜你, 成功用愛情擄獲了湖中女神的心, 湖中女神決定不只給你 金" + stuff + " 作為回報，也獻上了他的肉體 <3 (恭喜您獲得 500 丹丹幣，請聊天室的朋友提醒台主給錢)")
-                                break
-                            elif value == 1:
-                                self.send_message(self.SOCKET, "恭喜你, 成功用十塊錢擄獲了湖中女神的心, 湖中女神決定用 銀" + stuff + " 回報你的斗內 <3 (恭喜您獲得 300 丹丹幣，請聊天室的朋友提醒台主給錢)")
-                                break
-                            elif value == 2:
-                                self.send_message(self.SOCKET, "很抱歉,湖中女神聽不到你說甚麼,於是你的" +stuff + "就這樣默默的沉入湖底...")
-                                break
-                            elif value == 3:
-                                self.send_message(self.SOCKET, "湖中女神覺得你很誠實,所以決定把"+ stuff +"物歸原主")
-                                break
-                    else:
-                        self.send_message(self.SOCKET,
-                                          "湖中女神已經被" + lady_was_die_in_user_hands + "殺死，只有訂閱、斗內或小奇點，才有辦法讓台主使湖中女神死亡復甦! ")  # 中文版 防呆
+                    elif "!終極密碼" in message:
+                        self.BombRange = [0, 100]
+                        BombSolution = random.randint(self.BombRange[0],self.BombRange[1])
+                        self.send_message(self.SOCKET, "終極密碼開始，Range goes [0] to [100]")
+                        BombFlag = True
+                    elif "!Turn Off Say Hi" in message:
+                        hello_flag = False
+                        self.send_message(self.SOCKET, "英文打招呼功能已關閉!")
                         break
+                    elif "!女神CD " in message:
+                        CD_Time = self.set_CDTime(message)
+                        self.send_message(self.SOCKET, "女神CD更改為每"+ str(CD_Time) +"使用一次")
+                if "!湖中女神 " in message or "!drop " in message:
+                    if (lady_of_lake_CD - time.time()) < 0:
+                        lady_of_lake_CD = time.time() + CD_Time
+                        if lady_of_lake_flag == True:
+                            stuff = self.set_lake_stuff_from_lines(message, user)
+                            if stuff == 1:
+                                self.send_message(self.SOCKET, "很抱歉，由於您的物品名稱太長，導致掉下去湖中的過程，刺死了湖中女神，請您訂閱台主、斗內台主或使用小奇點以喚回湖中女神 ==> 進入CD 100秒") # 中文版 防呆
+                                lady_was_die_in_user_hands = user
+                                lady_of_lake_flag = False
+                                break
+                            elif stuff == 2:
+                                self.send_message(self.SOCKET, "很抱歉，由於您丟入湖裡的物品長得太奇怪，湖中女神認不出來，請您再丟一次，不知道怎麼丟可以問台主 :) ==> 進入CD 100秒")
+                                break
+                            else:
+                                value = self.get_stuff()
+                                if value == 0:
+                                    self.send_message(self.SOCKET, "恭喜你, 成功用愛情擄獲了湖中女神的心, 湖中女神決定不只給你 金 " + stuff + " 作為回報，也獻上了他的肉體 <3 (恭喜您獲得 1000 丹丹幣) ==> 進入CD "+ str(CD_Time) +" 秒")
+                                    self.SOCKET.send(("PRIVMSG #" + self.CHANNEL + " :" + "!addpoints " + user + " 1000" + "\r\n").encode('utf8'))
+                                    break
+                                elif value == 1:
+                                    self.send_message(self.SOCKET, "恭喜你, 成功用十塊錢擄獲了湖中女神的心, 湖中女神決定用 銀 " + stuff + " 回報你的斗內 <3 (恭喜您獲得 800 丹丹幣) ==> 進入CD "+ str(CD_Time) +" 秒")
+                                    self.SOCKET.send((
+                                                     "PRIVMSG #" + self.CHANNEL + " :" + "!addpoints " + user + " 800" + "\r\n").encode(
+                                        'utf8'))
+                                    break
+                                elif value == 2:
+                                    self.send_message(self.SOCKET, "很抱歉,湖中女神聽不到你說甚麼,於是你的 " +stuff + " 就這樣默默的沉入湖底... ==> 進入CD "+ str(CD_Time) +" 秒")
+                                    break
+                                elif value == 3:
+                                    self.send_message(self.SOCKET, "湖中女神覺得你很誠實,所以決定把 "+ stuff +" 物歸原主 ==> 進入CD "+ str(CD_Time) +" 秒")
+                                    break
+                        else:
+                            self.send_message(self.SOCKET,
+                                              "湖中女神已經被" + lady_was_die_in_user_hands + "殺死，只有訂閱、斗內或小奇點，才有辦法讓台主使湖中女神死亡復甦! ")  # 中文版 防呆
+                            break
+                    elif (lady_of_lake_CD - time.time()) >= 0:
+                        pass
                 if "!認人 " in message or "!set_nick_name " in message:
                     case = self.set_nick_name_from_lines(message=message, user=user)
                     if case == 1:
@@ -313,16 +378,26 @@ class TwitchBot:
                         if len(message) < 6:
                             self.send_message(self.SOCKET, nick_name + "妹妹早阿~ 小朋友們今天有沒有都乖乖的呀? ")
                             break
-                if 'Hi' in message or 'hi' in message:
-                    if 'FlipThis' in message or 'TheThing' in message or 'VoHiYo' in message or 'DoritosChip' in message or 'copyThis' in message or 'MorphinTime' in message or 'BigPhish' in message or 'NotLikeThis' in message:
-                        break
-                    elif 'Dante' in message or 'dante' in message:
-                        self.send_message(self.SOCKET, "Hello, " + nick_name + "!")
-                        break
+                if hello_flag:
+                    if 'Hi' in message or 'hi' in message:
+                        if 'Dante' in message or 'dante' in message:
+                            self.send_message(self.SOCKET, "Hello, " + nick_name + "!")
+                            break
+                        else:
+                            self.send_message(self.SOCKET, "Hi there! Nice to meet you")
+                            break
+                else:
+                    pass
+                if BombFlag:
+                    if self.get_Bomb_number(message).isdigit():
+                        bomb_result = self.number_check(user, int(self.get_Bomb_number(message)), BombSolution, self.BombRange)
+                        if bomb_result == False:
+                            BombFlag = False
+                        else:
+                            self.BombRange = bomb_result
                     else:
-                        self.send_message(self.SOCKET, "Hi there! Nice to meet you")
-                        break
-                if "歐吼" in message:
+                        pass
+                if "歐吼" in message or "喔齁" in message:
                     if user == "n75830" or user == "ss87414" or user == "winnie0810":
                         self.send_message(self.SOCKET, "歐~~~ 齁~~~~~" + nick_name + "早安呀")
                         break
@@ -331,7 +406,7 @@ class TwitchBot:
                         self.send_message(self.SOCKET, "摩根寶貝你來啦~  TwitchUnity  TwitchUnity")
                         break
                 if "InuyoFace" in message:
-                    self.send_message(self.SOCKET, "你想幹嘛? ScaredyCat ")
+                    self.send_message(self.SOCKET, "你想幹嘛? ScaredyCat")
                     break
                 if "KappaPride" in message:
                     if "阿" in message and "月" in message and "仔" in message:
